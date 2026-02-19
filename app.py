@@ -23,6 +23,11 @@ st.markdown("""
         border-radius: 10px;
         border-left: 5px solid #4CAF50;
         margin: 10px 0;
+        color: #1a1a1a;
+    }
+    .haiku-box pre {
+        color: #1a1a1a !important;
+        font-family: inherit;
     }
     .critique-box {
         background-color: #fff3cd;
@@ -30,6 +35,7 @@ st.markdown("""
         border-radius: 10px;
         border-left: 5px solid #ffc107;
         margin: 10px 0;
+        color: #1a1a1a;
     }
     .approved-box {
         background-color: #d4edda;
@@ -37,6 +43,7 @@ st.markdown("""
         border-radius: 10px;
         border-left: 5px solid #28a745;
         margin: 10px 0;
+        color: #155724;
     }
     .final-haiku {
         font-size: 1.3em;
@@ -47,9 +54,88 @@ st.markdown("""
         color: white;
         border-radius: 15px;
         margin: 20px 0;
+        line-height: 1.6;
     }
     </style>
     """, unsafe_allow_html=True)
+
+
+def run_with_streamlit_display(orchestrator, topic, max_turns, container):
+    """
+    Run the orchestrator with Streamlit display instead of console output.
+    """
+    # Initialize tracking variables
+    current_haiku = None
+    current_critique = None
+    history = {
+        "topic": topic,
+        "max_turns": max_turns,
+        "turns": []
+    }
+    approved = False
+
+    # Display in container
+    with container:
+        st.markdown(f"### 🎯 Session: {topic}")
+
+        # Main round-robin loop
+        for turn in range(1, max_turns + 1):
+            if turn % 2 == 1:  # Odd turns: Generate haiku
+                with st.expander(f"🎋 Turn {turn}: HaikuAgent - Generating Haiku", expanded=True):
+                    with st.spinner("Generating haiku..."):
+                        # Generate haiku (with critique if available)
+                        current_haiku = orchestrator.haiku_agent.write_haiku(
+                            topic=topic,
+                            critique=current_critique
+                        )
+
+                    st.markdown(f"""
+                        <div class='haiku-box'>
+                            <pre style='margin:0; font-size:1.1em; white-space: pre-wrap;'>{current_haiku}</pre>
+                        </div>
+                        """, unsafe_allow_html=True)
+
+                    # Record in history
+                    history["turns"].append({
+                        "turn": turn,
+                        "agent": "HaikuAgent",
+                        "action": "generate",
+                        "output": current_haiku
+                    })
+
+            else:  # Even turns: Critique haiku
+                with st.expander(f"💬 Turn {turn}: CritiqueAgent - Providing Critique", expanded=True):
+                    with st.spinner("Analyzing haiku..."):
+                        # Critique the current haiku
+                        current_critique = orchestrator.critique_agent.critique_haiku(current_haiku)
+
+                    st.markdown(f"""
+                        <div class='critique-box'>
+                            {current_critique}
+                        </div>
+                        """, unsafe_allow_html=True)
+
+                    # Record in history
+                    history["turns"].append({
+                        "turn": turn,
+                        "agent": "CritiqueAgent",
+                        "action": "critique",
+                        "output": current_critique
+                    })
+
+                    # Check if haiku was approved
+                    if current_critique.startswith("APPROVED:"):
+                        approved = True
+                        st.success("🎉 Haiku has been APPROVED! Stopping early.")
+                        break
+
+    # Store final haiku and approval status in history
+    history["final_haiku"] = current_haiku
+    history["approved"] = approved
+    history["actual_turns"] = len(history['turns'])
+
+    return history
+
 
 # Title and description
 st.title("🎋 Multi-Agent Haiku Refinement System")
@@ -183,84 +269,6 @@ with col2:
     <a href="https://github.com/singh-krishan/multiagent_systems" target="_blank">View on GitHub</a>
     </small>
     """, unsafe_allow_html=True)
-
-
-def run_with_streamlit_display(orchestrator, topic, max_turns, container):
-    """
-    Run the orchestrator with Streamlit display instead of console output.
-    """
-    # Initialize tracking variables
-    current_haiku = None
-    current_critique = None
-    history = {
-        "topic": topic,
-        "max_turns": max_turns,
-        "turns": []
-    }
-    approved = False
-
-    # Display in container
-    with container:
-        st.markdown(f"### 🎯 Session: {topic}")
-
-        # Main round-robin loop
-        for turn in range(1, max_turns + 1):
-            if turn % 2 == 1:  # Odd turns: Generate haiku
-                with st.expander(f"🎋 Turn {turn}: HaikuAgent - Generating Haiku", expanded=True):
-                    with st.spinner("Generating haiku..."):
-                        # Generate haiku (with critique if available)
-                        current_haiku = orchestrator.haiku_agent.write_haiku(
-                            topic=topic,
-                            critique=current_critique
-                        )
-
-                    st.markdown(f"""
-                        <div class='haiku-box'>
-                            <pre style='margin:0; font-size:1.1em; white-space: pre-wrap;'>{current_haiku}</pre>
-                        </div>
-                        """, unsafe_allow_html=True)
-
-                    # Record in history
-                    history["turns"].append({
-                        "turn": turn,
-                        "agent": "HaikuAgent",
-                        "action": "generate",
-                        "output": current_haiku
-                    })
-
-            else:  # Even turns: Critique haiku
-                with st.expander(f"💬 Turn {turn}: CritiqueAgent - Providing Critique", expanded=True):
-                    with st.spinner("Analyzing haiku..."):
-                        # Critique the current haiku
-                        current_critique = orchestrator.critique_agent.critique_haiku(current_haiku)
-
-                    st.markdown(f"""
-                        <div class='critique-box'>
-                            {current_critique}
-                        </div>
-                        """, unsafe_allow_html=True)
-
-                    # Record in history
-                    history["turns"].append({
-                        "turn": turn,
-                        "agent": "CritiqueAgent",
-                        "action": "critique",
-                        "output": current_critique
-                    })
-
-                    # Check if haiku was approved
-                    if current_critique.startswith("APPROVED:"):
-                        approved = True
-                        st.success("🎉 Haiku has been APPROVED! Stopping early.")
-                        break
-
-    # Store final haiku and approval status in history
-    history["final_haiku"] = current_haiku
-    history["approved"] = approved
-    history["actual_turns"] = len(history['turns'])
-
-    return history
-
 
 # Footer
 st.markdown("---")
