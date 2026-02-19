@@ -47,7 +47,26 @@ User → Orchestrator → HaikuAgent ⇄ CritiqueAgent
 
 ## Usage
 
-### Running the Full System
+### 🌐 Web Interface (Recommended)
+
+Launch the interactive web application:
+
+```bash
+streamlit run app.py
+```
+
+This will open a browser window with a beautiful interface where you can:
+- Enter topics and configure max turns
+- Watch the agents work in real-time
+- See the conversation unfold with color-coded displays
+- Download session history as JSON
+- View statistics and approval status
+
+**Access the app at**: `http://localhost:8501`
+
+### 💻 Command Line Interface
+
+Alternatively, run the console version:
 
 ```bash
 python orchestrator.py

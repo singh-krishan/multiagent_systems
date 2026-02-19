@@ -1,5 +1,49 @@
 # Changelog
 
+## [1.2.0] - Web Interface
+
+### Added
+- **Streamlit Web Application**: Beautiful interactive web interface for the multi-agent system
+- Real-time visualization of agent interactions with color-coded displays
+- Interactive configuration with text input and sliders
+- Session statistics dashboard
+- JSON export functionality for session history
+- Startup script (`start_web.sh`) for easy launching
+- Responsive two-column layout with sidebar
+- Gradient-styled final haiku presentation
+- Live progress indicators with spinners
+- Expandable sections for each turn
+- About section with tech stack and GitHub link
+
+### Modified Files
+
+#### `app.py` (new)
+- Complete Streamlit web application
+- Custom CSS styling for haiku and critique boxes
+- Real-time display function that mirrors orchestrator behavior
+- Download capability for session history
+- Metrics display for session statistics
+
+#### `requirements.txt`
+- Added `streamlit==1.31.0` dependency
+
+#### `README.md`
+- Added web interface usage instructions
+- Reorganized usage section with web and CLI options
+- Updated with web interface features
+
+#### `start_web.sh` (new)
+- Bash script for easy web server startup
+- Checks for .env file existence
+- Provides helpful startup messages
+
+### Benefits
+- More accessible and user-friendly interface
+- Visual feedback during agent interactions
+- Better demonstration and educational tool
+- Easier to share and showcase the project
+- Professional presentation for portfolio
+
 ## [1.1.0] - Early Stopping / Approval Feature
 
 ### Added
